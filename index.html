@@ -3,26 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Website Title</title>
-  <link rel="stylesheet" href="styles.css"> <!-- Optional: Link to a CSS file for styling -->
+  <title>AI Object Detection</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script> <!-- COCO-SSD Model -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+    #image {
+      max-width: 100%;
+      height: auto;
+      border: 2px solid #ccc;
+      margin-top: 20px;
+    }
+    #results {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Welcome to My Website!</h1>
-  </header>
+  <h1>AI Object Detection with TensorFlow.js</h1>
   
-  <main>
-    <section>
-      <h2>About Me</h2>
-      <p>This is a brief introduction to my website. Add content here!</p>
-    </section>
+  <!-- Upload Image -->
+  <input type="file" id="image-upload" accept="image/*" />
+  
+  <!-- Display Image -->
+  <img id="image" src="" alt="Upload an image" />
 
-    <section>
-      <h2>Contact</h2>
-      <p>You can contact me at: <a href="mailto:email@example.com">email@example.com</a></p>
-    </section>
-  </main>
+  <!-- Display Detected Objects -->
+  <div id="results"></div>
 
+  <script>
+    let model;
+
+    // Load the COCO-SSD model
+    async function loadModel() {
+      model = await cocoSsd.load();
+      console.log("Model Loaded!");
+    }
+
+    // Run object detection on an image
+    async function detectObjects(imageElement) {
+      const predictions = await model.detect(imageElement);
+      displayResults(predictions);
+    }
+
+    // Display results on the page
+    function displayResults(predictions) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
+      predictions.forEach(prediction => {
+        const resultText = document.createElement('p');
+        resultText.innerText = `Detected ${prediction.class} with confidence of ${Math.round(prediction.score * 100)}%`;
+        resultsDiv.appendChild(resultText);
+      });
+    }
+
+    // Handle image upload
+    document.getElementById('image-upload').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const imageElement = document.getElementById('image');
+        imageElement.src = e.target.result;
+        
+        imageElement.onload = async () => {
+          await detectObjects(imageElement);
+        };
+      };
+
+      if (file) {
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Load the model on page load
+    loadModel();
+  </script>
+</body>
+</html>
   <footer>
     <p>&copy; 2025 Your Name. All rights reserved.</p>
   </footer>
